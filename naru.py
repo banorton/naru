@@ -31,4 +31,4 @@ if __name__ == "__main__":
 
     plt.imshow(naru_name, cmap="gray")
     plt.axis("off")
-    plt.show() 
+    plt.show()
