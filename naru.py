@@ -26,26 +26,71 @@ class naru:
     # fmt: on
 
     @staticmethod
-    def en2naru(txt):
-        return None
+    def translate(txt):
+        d = naru.dictionary()
+        splt = txt.split()
+        naru_txt = []
+        for word in splt:
+            word = naru._prep_word(word)
+            phonemes = naru._prep_phonemes(word)
+            print(phonemes)
+            buffer = np.ones((27, 27), dtype=np.uint8) * 255
+            buffer[:, 0:2] = 0
+            for p in phonemes:
+                print(p)
+                mask = d[p] - 255
+                buffer += mask
+                if p in naru.ipa_vowels:
+                    naru_txt.append(buffer)
+                    buffer = np.ones((27, 27), dtype=np.uint8) * 255
+            if any(buffer.flatten() == 0):
+                naru_txt.append(buffer)
+            stop = np.ones((27, 27), dtype=np.uint8) * 255
+            stop[:, 25:] = 0
+            stop -= 255
+            naru_txt[-1] += stop
+            naru_txt.append(np.ones((27, 4)) * 255)
+        return np.concatenate(tuple(naru_txt), axis=1)
+
+    @staticmethod
+    def _prep_word(word):
+        return "".join([c.lower() for c in word if c.isalpha()])
+
+    @staticmethod
+    def _prep_word(word):
+        return "".join([c.lower() for c in word if c.isalpha()])
+
+    @staticmethod
+    def _prep_phonemes(word):
+        # phonemes = ipa.convert(word)
+
+        phonemes = ipa.ipa_list(word)
+        phonemes = sorted(phonemes[0], key=lambda x: len(x))
+        phonemes = phonemes[0]
+
+        phonemes = phonemes.replace("ˈ", "")
+        phonemes = phonemes.replace("ˌ", "")
+        return phonemes
 
     @staticmethod
     def dictionary():
         vlen = min(len(naru.ipa_vowels), len(naru.naru_vowels))
         vzip = list(zip(naru.ipa_vowels[:vlen], naru.naru_vowels[:vlen]))
-
         clen = min(len(naru.ipa_consonants), len(naru.naru_consonants))
         czip = list(zip(naru.ipa_consonants[:clen], naru.naru_consonants[:clen]))
-
-        return [entry for entry in vzip] + [entry for entry in czip]
+        return dict([entry for entry in vzip] + [entry for entry in czip])
 
 
 if __name__ == "__main__":
-    print(naru.dictionary())
-    # naru_name = en2naru("brandon")
-    # plt.imshow(naru_name, cmap="gray")
-    # plt.axis("off")
-    # plt.show()
+    naruword1 = naru.translate("The quick brown fox jumps over the lazy dog")
+    naruword2 = naru.translate("Ana")
+    plt.subplot(311)
+    plt.imshow(naruword1, cmap="gray")
+    plt.axis("off")
+    plt.subplot(312)
+    plt.imshow(naruword2, cmap="gray")
+    plt.axis("off")
+    plt.show()
 
     # print(len(naru.naru_vowels))
     # print(len(naru.naru_consonants))
