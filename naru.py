@@ -26,35 +26,57 @@ class naru:
     # fmt: on
 
     @staticmethod
-    def translate(txt):
-        d = naru.dictionary()
-        splt = txt.split()
-        naru_txt = []
-        for word in splt:
+    def translate(txt, syl_lim=5):
+        d, lns = naru.dictionary(), [[]]
+        ln = lns[0]
+        for word in txt.split():
             word = naru._prep_word(word)
             phonemes = naru._prep_phonemes(word)
-            print(phonemes)
-            buffer = np.ones((27, 27), dtype=np.uint8) * 255
-            buffer[:, 0:2] = 0
+
+            # Start syllable and add an open for the word.
+            syl = np.ones((27, 27), dtype=np.uint8) * 255
+            # syl[:, 0:1] = 0
+
             for p in phonemes:
-                print(p)
                 mask = d[p] - 255
-                buffer += mask
+                syl += mask
                 if p in naru.ipa_vowels:
-                    naru_txt.append(buffer)
-                    buffer = np.ones((27, 27), dtype=np.uint8) * 255
-            if any(buffer.flatten() == 0):
-                naru_txt.append(buffer)
-            stop = np.ones((27, 27), dtype=np.uint8) * 255
-            stop[:, 25:] = 0
-            stop -= 255
-            naru_txt[-1] += stop
-            naru_txt.append(np.ones((27, 4)) * 255)
-        return np.concatenate(tuple(naru_txt), axis=1)
+                    if len(ln) == syl_lim:
+                        lns.append([])
+                        ln = lns[-1]
+                    ln.append(syl)
+                    syl = np.ones((27, 27), dtype=np.uint8) * 255
+            if any(syl.flatten() == 0):
+                if len(ln) == syl_lim:
+                    lns.append([])
+                    ln = lns[-1]
+                ln.append(syl)
+
+            # Add a close to the word.
+            close = np.ones((27, 27), dtype=np.uint8) * 255
+            # close = np.ones(ln[-1].shape, dtype=np.uint8) * 255
+            close[:, 26:] = 0
+            close -= 255
+            # ln[-1] += close
+
+            # Add a space between words.
+            # ln.append(np.ones((27, 8)) * 255)
+        naru._addendspace(lns[-1], syl_lim)
+        for i in range(len(lns)):
+            lns[i] = np.concatenate(lns[i], axis=1)
+            lnspc = np.ones((8, lns[0].shape[1])) * 255
+            lns[i] = np.concatenate((lns[i], lnspc), axis=0)
+        return np.concatenate(lns, axis=0)
 
     @staticmethod
     def _prep_word(word):
         return "".join([c.lower() for c in word if c.isalpha()])
+
+    @staticmethod
+    def _addendspace(ln, syl_lim):
+        for _ in range(syl_lim - len(ln)):
+            blank = np.ones((27, 27), dtype=np.uint8) * 255
+            ln.append(blank)
 
     @staticmethod
     def _prep_word(word):
@@ -70,6 +92,7 @@ class naru:
 
         phonemes = phonemes.replace("ˈ", "")
         phonemes = phonemes.replace("ˌ", "")
+        phonemes = phonemes.replace("*", "")
         return phonemes
 
     @staticmethod
@@ -82,17 +105,40 @@ class naru:
 
 
 if __name__ == "__main__":
-    naruword1 = naru.translate("The quick brown fox jumps over the lazy dog")
-    naruword2 = naru.translate("Ana")
-    plt.subplot(311)
-    plt.imshow(naruword1, cmap="gray")
-    plt.axis("off")
-    plt.subplot(312)
-    plt.imshow(naruword2, cmap="gray")
-    plt.axis("off")
-    plt.show()
+    naruwords = []
+    # naruwords.append(
+    #     naru.translate(
+    #         "I have a dream that one day on the red hills of Georgia, the sons of former slaves and the sons of former slave owners will be able to sit down together at the table of brotherhood."
+    #     )
+    # )
+    # naruwords.append(
+    #     naru.translate(
+    #         "I have a dream that one day even the state of Mississippi, a state sweltering with the heat of injustice, sweltering with the heat of oppression will be transformed into an oasis of freedom and justice."
+    #     )
+    # )
+    words = [
+        "Brandon",
+        "Ana",
+        "Jordan",
+        "Olivia",
+        "Jessica",
+        "Devin",
+        "David",
+        "Cathy",
+        "Shadow",
+        "Panther",
+    ]
 
-    # print(len(naru.naru_vowels))
-    # print(len(naru.naru_consonants))
-    # print(len(naru.ipa_vowels))
-    # print(len(naru.ipa_consonants))
+    naruwords = []
+    for word in words:
+        naruwords.append(naru.translate(word))
+
+    title = True
+    arrsz = (len(words) // 2, 2)
+    for i in range(len(naruwords)):
+        plt.subplot(arrsz[0], arrsz[1], i + 1)
+        plt.imshow(naruwords[i], cmap="gray")
+        plt.axis("off")
+        if title:
+            plt.title(words[i])
+    plt.show()
