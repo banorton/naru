@@ -2,7 +2,6 @@ import numpy as np
 import os
 import cv2
 from matplotlib import pyplot as plt
-import random as rand
 import eng_to_ipa as ipa
 
 
@@ -17,8 +16,9 @@ def load_images_from_folder(folder):
 
 
 class naru:
-    naru_vowels = load_images_from_folder(os.getcwd() + "/script2/vowels")
-    naru_consonants = load_images_from_folder(os.getcwd() + "/script2/consonants")
+    script = "script1"
+    naru_vowels = load_images_from_folder(os.getcwd() + f"/{script}/vowels")
+    naru_consonants = load_images_from_folder(os.getcwd() + f"/{script}/consonants")
 
     # fmt: off
     ipa_vowels = ['ə', 'ɪ', 'i', 'ɛ', 'æ', 'u', 'e', 'ɑ', 'ɔ', 'o', 'a', 'ʊ']
@@ -54,13 +54,13 @@ class naru:
 
             # Add a close to the word.
             close = np.ones((27, 27), dtype=np.uint8) * 255
-            # close = np.ones(ln[-1].shape, dtype=np.uint8) * 255
+            close = np.ones(ln[-1].shape, dtype=np.uint8) * 255
             close[:, 26:] = 0
             close -= 255
-            # ln[-1] += close
+            ln[-1] += close
 
             # Add a space between words.
-            # ln.append(np.ones((27, 8)) * 255)
+            ln.append(np.ones((27, 8)) * 255)
         naru._addendspace(lns[-1], syl_lim)
         for i in range(len(lns)):
             lns[i] = np.concatenate(lns[i], axis=1)
@@ -84,8 +84,6 @@ class naru:
 
     @staticmethod
     def _prep_phonemes(word):
-        # phonemes = ipa.convert(word)
-
         phonemes = ipa.ipa_list(word)
         phonemes = sorted(phonemes[0], key=lambda x: len(x))
         phonemes = phonemes[0]
@@ -106,16 +104,6 @@ class naru:
 
 if __name__ == "__main__":
     naruwords = []
-    # naruwords.append(
-    #     naru.translate(
-    #         "I have a dream that one day on the red hills of Georgia, the sons of former slaves and the sons of former slave owners will be able to sit down together at the table of brotherhood."
-    #     )
-    # )
-    # naruwords.append(
-    #     naru.translate(
-    #         "I have a dream that one day even the state of Mississippi, a state sweltering with the heat of injustice, sweltering with the heat of oppression will be transformed into an oasis of freedom and justice."
-    #     )
-    # )
     words = [
         "Brandon",
         "Ana",
