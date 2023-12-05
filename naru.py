@@ -35,7 +35,7 @@ class naru:
 
             # Start syllable and add an open for the word.
             syl = np.ones((27, 27), dtype=np.uint8) * 255
-            # syl[:, 0:1] = 0
+            syl[:, 0:1] = 0
 
             for p in phonemes:
                 mask = d[p] - 255
@@ -103,30 +103,31 @@ class naru:
 
 
 if __name__ == "__main__":
-    naruwords = []
-    words = [
-        "Brandon",
-        "Ana",
-        "Jordan",
-        "Olivia",
-        "Jessica",
-        "Devin",
-        "David",
-        "Cathy",
-        "Shadow",
-        "Panther",
-    ]
+    # naruwords = []
+    # words = [
+    #     "Brandon",
+    #     "Ana",
+    #     "Jordan",
+    #     "Olivia",
+    #     "Jessica",
+    #     "Devin",
+    #     "David",
+    #     "Cathy",
+    #     "Shadow",
+    #     "Panther",
+    # ]
 
-    naruwords = []
-    for word in words:
-        naruwords.append(naru.translate(word))
+    # naruwords = []
+    # for word in words:
+    #     naruwords.append(naru.translate(word))
 
-    title = True
-    arrsz = (len(words) // 2, 2)
-    for i in range(len(naruwords)):
-        plt.subplot(arrsz[0], arrsz[1], i + 1)
-        plt.imshow(naruwords[i], cmap="gray")
-        plt.axis("off")
-        if title:
-            plt.title(words[i])
-    plt.show()
+    # title = True
+    # arrsz = (len(words) // 2, 2)
+    # for i in range(len(naruwords)):
+    #     plt.subplot(arrsz[0], arrsz[1], i + 1)
+    #     plt.imshow(naruwords[i], cmap="gray")
+    #     plt.axis("off")
+    #     if title:
+    #         plt.title(words[i])
+    # plt.show()
+    print("hello" in "hell")
