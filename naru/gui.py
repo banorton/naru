@@ -4,7 +4,7 @@ from os import path
 from math import floor
 
 
-class gui:
+class Gui:
     def __init__(self, parent=None):
         self.parent = parent
         root = tk.Tk()

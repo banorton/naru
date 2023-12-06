@@ -3,7 +3,7 @@ import os
 from .funcs import load_images_from_folder
 from matplotlib import pyplot as plt
 import eng_to_ipa as ipa
-from .gui import gui
+from .gui import Gui
 
 
 class Naru:
@@ -105,5 +105,5 @@ class Naru:
                 plt.title(words[i])
         plt.show()
 
-    def gui():
-        return gui()
+    def mkgui():
+        return Gui()
