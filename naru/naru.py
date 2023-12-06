@@ -1,24 +1,17 @@
 import numpy as np
 import os
-import cv2
+from .funcs import load_images_from_folder
 from matplotlib import pyplot as plt
 import eng_to_ipa as ipa
+from .gui import gui
 
 
-def load_images_from_folder(folder):
-    images = []
-    for filename in os.listdir(folder):
-        img = cv2.imread(os.path.join(folder, filename))
-        img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-        if img is not None:
-            images.append(img)
-    return images
-
-
-class naru:
+class Naru:
     script = "script1"
-    naru_vowels = load_images_from_folder(os.getcwd() + f"/{script}/vowels")
-    naru_consonants = load_images_from_folder(os.getcwd() + f"/{script}/consonants")
+    naru_vowels = load_images_from_folder(os.getcwd() + f"/naru/{script}/vowels")
+    naru_consonants = load_images_from_folder(
+        os.getcwd() + f"/naru/{script}/consonants"
+    )
 
     # fmt: off
     ipa_vowels = ['ə', 'ɪ', 'i', 'ɛ', 'æ', 'u', 'e', 'ɑ', 'ɔ', 'o', 'a', 'ʊ']
@@ -27,11 +20,11 @@ class naru:
 
     @staticmethod
     def translate(txt, syl_lim=5):
-        d, lns = naru.dictionary(), [[]]
+        d, lns = Naru.dictionary(), [[]]
         ln = lns[0]
         for word in txt.split():
-            word = naru._prep_word(word)
-            phonemes = naru._prep_phonemes(word)
+            word = Naru._prep_word(word)
+            phonemes = Naru._prep_phonemes(word)
 
             # Start syllable and add an open for the word.
             syl = np.ones((27, 27), dtype=np.uint8) * 255
@@ -40,7 +33,7 @@ class naru:
             for p in phonemes:
                 mask = d[p] - 255
                 syl += mask
-                if p in naru.ipa_vowels:
+                if p in Naru.ipa_vowels:
                     if len(ln) == syl_lim:
                         lns.append([])
                         ln = lns[-1]
@@ -61,7 +54,7 @@ class naru:
 
             # Add a space between words.
             ln.append(np.ones((27, 8)) * 255)
-        naru._addendspace(lns[-1], syl_lim)
+        Naru._addendspace(lns[-1], syl_lim)
         for i in range(len(lns)):
             lns[i] = np.concatenate(lns[i], axis=1)
             lnspc = np.ones((8, lns[0].shape[1])) * 255
@@ -95,39 +88,22 @@ class naru:
 
     @staticmethod
     def dictionary():
-        vlen = min(len(naru.ipa_vowels), len(naru.naru_vowels))
-        vzip = list(zip(naru.ipa_vowels[:vlen], naru.naru_vowels[:vlen]))
-        clen = min(len(naru.ipa_consonants), len(naru.naru_consonants))
-        czip = list(zip(naru.ipa_consonants[:clen], naru.naru_consonants[:clen]))
+        vlen = min(len(Naru.ipa_vowels), len(Naru.naru_vowels))
+        vzip = list(zip(Naru.ipa_vowels[:vlen], Naru.naru_vowels[:vlen]))
+        clen = min(len(Naru.ipa_consonants), len(Naru.naru_consonants))
+        czip = list(zip(Naru.ipa_consonants[:clen], Naru.naru_consonants[:clen]))
         return dict([entry for entry in vzip] + [entry for entry in czip])
 
+    @staticmethod
+    def plot(words, naruwords, title=True):
+        arrsz = (len(words) // 2, 2)
+        for i in range(len(naruwords)):
+            plt.subplot(arrsz[0], arrsz[1], i + 1)
+            plt.imshow(naruwords[i], cmap="gray")
+            plt.axis("off")
+            if title:
+                plt.title(words[i])
+        plt.show()
 
-if __name__ == "__main__":
-    # naruwords = []
-    # words = [
-    #     "Brandon",
-    #     "Ana",
-    #     "Jordan",
-    #     "Olivia",
-    #     "Jessica",
-    #     "Devin",
-    #     "David",
-    #     "Cathy",
-    #     "Shadow",
-    #     "Panther",
-    # ]
-
-    # naruwords = []
-    # for word in words:
-    #     naruwords.append(naru.translate(word))
-
-    # title = True
-    # arrsz = (len(words) // 2, 2)
-    # for i in range(len(naruwords)):
-    #     plt.subplot(arrsz[0], arrsz[1], i + 1)
-    #     plt.imshow(naruwords[i], cmap="gray")
-    #     plt.axis("off")
-    #     if title:
-    #         plt.title(words[i])
-    # plt.show()
-    print("hello" in "hell")
+    def gui():
+        return gui()
