@@ -106,4 +106,6 @@ class Naru:
         plt.show()
 
     def mkgui():
-        return Gui()
+        gui = Gui()
+        gui.root.mainloop()
+        return gui
