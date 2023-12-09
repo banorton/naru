@@ -22,9 +22,10 @@ class Naru:
     # fmt: on
 
     @staticmethod
-    def translate(txt, syl_lim=5):
+    def translate(txt, syl_lim=20):
         d, lns = Naru.dictionary(), [[]]
         ln = lns[0]
+        ln_len = 0
         for word in txt.split():
             word = Naru._prep_word(word)
             phonemes = Naru._prep_phonemes(word)
@@ -32,21 +33,26 @@ class Naru:
             # Start syllable and add an open for the word.
             syl = np.ones((27, 27), dtype=np.uint8) * 255
             syl[:, 0:1] = 0
-
             for p in phonemes:
                 mask = d[p] - 255
                 syl += mask
                 if p in Naru.ipa_vowels:
-                    if len(ln) == syl_lim:
+                    if (syl_lim * 27) - ln_len < 27:
+                        Naru._addendspace(lns[-1], syl_lim, ln_len)
                         lns.append([])
                         ln = lns[-1]
+                        ln_len = 0
                     ln.append(syl)
+                    ln_len += 27
                     syl = np.ones((27, 27), dtype=np.uint8) * 255
             if any(syl.flatten() == 0):
-                if len(ln) == syl_lim:
+                if (syl_lim * 27) - ln_len < 27:
+                    Naru._addendspace(lns[-1], syl_lim, ln_len)
                     lns.append([])
                     ln = lns[-1]
+                    ln_len = 0
                 ln.append(syl)
+                ln_len += 27
 
             # Add a close to the word.
             close = np.ones((27, 27), dtype=np.uint8) * 255
@@ -55,12 +61,20 @@ class Naru:
             close -= 255
             ln[-1] += close
 
-            # Add a space between words.
-            if len(ln) < syl_lim:
+            # Add a space between words. Start new line if not enough space.
+            if (syl_lim * 27) - ln_len >= 27:
                 ln.append(np.ones((27, 8)) * 255)
-        Naru._addendspace(lns[-1], syl_lim)
-        print(lns[-1].shape)
+                ln_len += 8
+            elif (syl_lim * 27) - ln_len < 27:
+                Naru._addendspace(lns[-1], syl_lim, ln_len)
+                lns.append([])
+                ln = lns[-1]
+                ln_len = 0
+
+        Naru._addendspace(lns[-1], syl_lim, ln_len)
         for i in range(len(lns)):
+            if len(lns[i]) == 0:
+                continue
             lns[i] = np.concatenate(lns[i], axis=1)
             lnspc = np.ones((8, lns[0].shape[1])) * 255
             lns[i] = np.concatenate((lns[i], lnspc), axis=0)
@@ -71,10 +85,10 @@ class Naru:
         return "".join([c.lower() for c in word if c.isalpha()])
 
     @staticmethod
-    def _addendspace(ln, syl_lim):
-        for _ in range(syl_lim - len(ln)):
-            blank = np.ones((27, 27), dtype=np.uint8) * 255
-            ln.append(blank)
+    def _addendspace(ln, syl_lim, ln_len):
+        width_needed = (syl_lim * 27) - ln_len
+        blank = np.ones((27, width_needed), dtype=np.uint8) * 255
+        ln.append(blank)
 
     @staticmethod
     def _prep_word(word):
@@ -100,11 +114,18 @@ class Naru:
         return dict([entry for entry in vzip] + [entry for entry in czip])
 
     @staticmethod
-    def plot(naru_words):
-        fig = plt.figure()
-        plt.imshow(naru_words, cmap="gray")
-        plt.axis("off")
-        return fig
+    def plot(naru_words, fig, ax):
+        if not fig or not ax:
+            fig = plt.figure()
+            ax = fig.add_subplot()
+            ax.imshow(naru_words, cmap="gray")
+            ax.axis("off")
+            return fig, ax
+        elif fig and ax:
+            ax.clear()
+            ax.imshow(naru_words, cmap="gray")
+            ax.axis("off")
+            return fig, ax
 
     @staticmethod
     def mkgui():
@@ -116,9 +137,12 @@ class Naru:
 class Gui:
     def __init__(self, parent=None):
         self.parent = parent
+        self.curr_plt = None
+        self.fig = plt.figure()
+        self.axes = self.fig.add_subplot()
         root = tk.Tk()
         self.root = root
-        root.geometry("800x600")
+        root.geometry("800x800")
         root.resizable(width=False, height=False)
         root.title("Translator")
         root.rowconfigure(0, weight=10)
@@ -165,9 +189,23 @@ class Gui:
         translate_naru.grid(row=1, column=0, padx=5)
 
     def translate_and_plot(self):
-        txt = self.entry.get("1.0", "end-1c")
-        naru_txt = Naru.translate(txt)
-        gui_fig = Naru.plot(naru_txt)
-        naru_plt = FigureCanvasTkAgg(gui_fig, master=self.naru_frame)
-        naru_plt.draw()
-        naru_plt.get_tk_widget().pack()
+        # self._clear_plt()
+        if self.curr_plt == None:
+            print("hello")
+            txt = self.entry.get("1.0", "end-1c")
+            naru_txt = Naru.translate(txt)
+            self.fig, self.axes = Naru.plot(naru_txt, self.fig, self.axes)
+            self.curr_plt = FigureCanvasTkAgg(self.fig, master=self.naru_frame)
+            self.curr_plt.draw()
+            self.curr_plt.get_tk_widget().pack()
+        else:
+            print("world")
+            txt = self.entry.get("1.0", "end-1c")
+            naru_txt = Naru.translate(txt)
+            self.fig, self.axes = Naru.plot(naru_txt, self.fig, self.axes)
+            self.curr_plt.draw()
+
+    def _clear_plt(self):
+        if self.curr_plt == None:
+            return
+        self.axes.clear()
