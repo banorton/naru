@@ -31,6 +31,8 @@ class Naru:
         words = txt.split()
         if len(words) < 20:
             syl_lim = 10
+        elif len(words) > 250:
+            raise Exception("Too big a translation.")
         else:
             syl_lim = floor(sqrt(len(words) * 5))
         for word in words:
@@ -101,11 +103,10 @@ class Naru:
         ln.append(blank)
 
     @staticmethod
-    def _prep_word(word):
-        return "".join([c.lower() for c in word if c.isalpha()])
-
-    @staticmethod
     def _prep_phonemes(word):
+        print(f"word: {word}")
+        if not word:
+            return []
         phonemes = ipa.ipa_list(word)
         phonemes = sorted(phonemes[0], key=lambda x: len(x))
         phonemes = phonemes[0]
