@@ -19,16 +19,20 @@ class Naru:
 
     # fmt: off
     ipa_vowels = ['ə', 'ɪ', 'i', 'ɛ', 'æ', 'u', 'e', 'ɑ', 'ɔ', 'o', 'a', 'ʊ']
-    ipa_consonants = ['n', 'r', 't', 's', 'd', 'l', 'k', 'ð', 'm', 'z', 'p', 'v', 'w', 'b', 'f', 'h', 'ŋ', 'ʃ', 'j', 'g', 'ʤ', 'ʧ', 'θ', 'ʒ']
+    ipa_consonants = ['n', 'r', 't', 's', 'd', 'l', 'k', 'ð', 'm', 'z', 'p', 'v', 'w', 'b', 'f', 'h', 'ŋ', 'ʃ', 'j', 'g', 'ʤ', 'ʧ', 'θ', 'ʒ', 'c']
     # fmt: on
 
     @staticmethod
     def translate(txt):
         d, lns = Naru.dictionary(), [[]]
+        print(d.keys())
         ln = lns[0]
         ln_len = 0
         words = txt.split()
-        syl_lim = floor(sqrt(len(words) * 3))
+        if len(words) < 20:
+            syl_lim = 10
+        else:
+            syl_lim = floor(sqrt(len(words) * 5))
         for word in words:
             word = Naru._prep_word(word)
             phonemes = Naru._prep_phonemes(word)
@@ -36,7 +40,10 @@ class Naru:
             # Start syllable and add an open for the word.
             syl = np.ones((27, 27), dtype=np.uint8) * 255
             syl[:, 0:1] = 0
+            ct = 0
             for p in phonemes:
+                print(ct, word, p)
+                ct += 1
                 mask = d[p] - 255
                 syl += mask
                 if p in Naru.ipa_vowels:
@@ -113,6 +120,7 @@ class Naru:
         vlen = min(len(Naru.ipa_vowels), len(Naru.naru_vowels))
         vzip = list(zip(Naru.ipa_vowels[:vlen], Naru.naru_vowels[:vlen]))
         clen = min(len(Naru.ipa_consonants), len(Naru.naru_consonants))
+        print(len(Naru.ipa_consonants), len(Naru.naru_consonants))
         czip = list(zip(Naru.ipa_consonants[:clen], Naru.naru_consonants[:clen]))
         return dict([entry for entry in vzip] + [entry for entry in czip])
 
@@ -192,9 +200,7 @@ class Gui:
         translate_naru.grid(row=1, column=0, padx=5)
 
     def translate_and_plot(self):
-        # self._clear_plt()
         if self.curr_plt == None:
-            print("hello")
             txt = self.entry.get("1.0", "end-1c")
             naru_txt = Naru.translate(txt)
             self.fig, self.axes = Naru.plot(naru_txt, self.fig, self.axes)
