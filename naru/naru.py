@@ -25,26 +25,24 @@ class Naru:
     @staticmethod
     def translate(txt):
         d, lns = Naru.dictionary(), [[]]
-        print(d.keys())
         ln = lns[0]
         ln_len = 0
         words = txt.split()
         if len(words) < 20:
             syl_lim = 10
-        elif len(words) > 250:
-            raise Exception("Too big a translation.")
         else:
-            syl_lim = floor(sqrt(len(words) * 5))
+            syl_lim = floor(sqrt(len(words) * 6))
         for word in words:
             word = Naru._prep_word(word)
             phonemes = Naru._prep_phonemes(word)
+            if not phonemes:
+                continue
 
             # Start syllable and add an open for the word.
             syl = np.ones((27, 27), dtype=np.uint8) * 255
             syl[:, 0:1] = 0
             ct = 0
             for p in phonemes:
-                print(ct, word, p)
                 ct += 1
                 mask = d[p] - 255
                 syl += mask
@@ -104,7 +102,6 @@ class Naru:
 
     @staticmethod
     def _prep_phonemes(word):
-        print(f"word: {word}")
         if not word:
             return []
         phonemes = ipa.ipa_list(word)
@@ -121,7 +118,6 @@ class Naru:
         vlen = min(len(Naru.ipa_vowels), len(Naru.naru_vowels))
         vzip = list(zip(Naru.ipa_vowels[:vlen], Naru.naru_vowels[:vlen]))
         clen = min(len(Naru.ipa_consonants), len(Naru.naru_consonants))
-        print(len(Naru.ipa_consonants), len(Naru.naru_consonants))
         czip = list(zip(Naru.ipa_consonants[:clen], Naru.naru_consonants[:clen]))
         return dict([entry for entry in vzip] + [entry for entry in czip])
 
@@ -209,7 +205,6 @@ class Gui:
             self.curr_plt.draw()
             self.curr_plt.get_tk_widget().pack()
         else:
-            print("world")
             txt = self.entry.get("1.0", "end-1c")
             naru_txt = Naru.translate(txt)
             self.fig, self.axes = Naru.plot(naru_txt, self.fig, self.axes)
