@@ -7,6 +7,7 @@ import eng_to_ipa as ipa
 import tkinter as tk
 from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from math import floor, sqrt
 
 
 class Naru:
@@ -22,11 +23,13 @@ class Naru:
     # fmt: on
 
     @staticmethod
-    def translate(txt, syl_lim=20):
+    def translate(txt):
         d, lns = Naru.dictionary(), [[]]
         ln = lns[0]
         ln_len = 0
-        for word in txt.split():
+        words = txt.split()
+        syl_lim = floor(sqrt(len(words) * 3))
+        for word in words:
             word = Naru._prep_word(word)
             phonemes = Naru._prep_phonemes(word)
 
