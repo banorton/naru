@@ -187,6 +187,17 @@ class Naru:
 
     @staticmethod
     def plot(naru_words, fig, ax):
+        """Creates a figure and axes for the image of naru script.
+
+        Args:
+            naru_words (numpy.ndarray): image of naru script
+            fig (matplotlib.pyplot.figure): figure
+            ax (matplotlib.pyplot.axes): axes
+
+        Returns:
+            tuple: tuple of figure and axes
+        """
+
         if not fig or not ax:
             fig = plt.figure()
             ax = fig.add_subplot()
@@ -201,17 +212,28 @@ class Naru:
 
     @staticmethod
     def mkgui():
+        """Makes a gui.
+
+        Returns:
+            Gui: Gui for translating english into naru script
+        """
+
         gui = Gui()
         gui.root.mainloop()
         return gui
 
 
 class Gui:
-    def __init__(self, parent=None):
-        self.parent = parent
+    """Graphical user interface for translating english into naru script."""
+
+    def __init__(self):
+        """Contructs the gui"""
+
         self.curr_plt = None
         self.fig = plt.figure()
         self.axes = self.fig.add_subplot()
+
+        # Root frame
         root = tk.Tk()
         self.root = root
         root.geometry("800x800")
@@ -223,7 +245,7 @@ class Gui:
         root.tk.call("source", path.join(path.dirname(__file__), "forest-dark.tcl"))
         style.theme_use("forest-dark")
 
-        # Top Frame
+        # Top Frame (English)
         translate_eng = ttk.Frame(root)
         info_frame = ttk.Frame(translate_eng)
         translate_eng_label = ttk.Label(
@@ -245,7 +267,7 @@ class Gui:
         translate_eng.grid(row=0, column=0, padx=5)
         self.entry = translate_eng_text
 
-        # Bottom Frame
+        # Bottom Frame (Naru)
         translate_naru = ttk.Frame(root)
         translate_naru_label = ttk.Label(
             translate_naru,
@@ -261,6 +283,8 @@ class Gui:
         translate_naru.grid(row=1, column=0, padx=5)
 
     def translate_and_plot(self):
+        """Gets the current entry, translates it into naru, and plots it in the gui."""
+
         if self.curr_plt == None:
             txt = self.entry.get("1.0", "end-1c")
             naru_txt = Naru.translate(txt)
@@ -275,6 +299,8 @@ class Gui:
             self.curr_plt.draw()
 
     def _clear_plt(self):
+        """Clears the gui plot."""
+
         if self.curr_plt == None:
             return
         self.axes.clear()
