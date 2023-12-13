@@ -116,31 +116,53 @@ class Naru:
 
     @staticmethod
     def _prep_word(word):
-        """_summary_
+        """Prepares a word to be translated by removing all but the letters in the alphabet and converting to lowercase.
 
         Args:
-            word (_type_): _description_
+            word (str): word to prepared
 
         Returns:
-            _type_: _description_
+            str: the prepared word
         """
 
         return "".join([c.lower() for c in word if c.isalpha()])
 
     @staticmethod
     def _addendspace(ln, syl_lim, ln_len):
+        """Adds white space to the end of a line.
+
+        Args:
+            ln (numpy.ndarray): image of a line written in naru.
+            syl_lim (int): syllable limit
+            ln_len (int): len of the line in pixels.
+        """
+
         width_needed = (syl_lim * 27) - ln_len
         blank = np.ones((27, width_needed), dtype=np.uint8) * 255
         ln.append(blank)
 
     @staticmethod
     def _prep_phonemes(word):
+        """Prepares the phonemes for a given word.
+
+        Args:
+            word (str): word to be converted into phonemes
+
+        Returns:
+            list[str]: list of phonemes
+        """
+
         if not word:
             return []
+
+        # Get a list of possible combinations of phonemes for the word.
         phonemes = ipa.ipa_list(word)
+
+        # Choose the shortest combination of phonemes for the word.
         phonemes = sorted(phonemes[0], key=lambda x: len(x))
         phonemes = phonemes[0]
 
+        # Remove inflection marks.
         phonemes = phonemes.replace("ˈ", "")
         phonemes = phonemes.replace("ˌ", "")
         phonemes = phonemes.replace("*", "")
@@ -148,6 +170,12 @@ class Naru:
 
     @staticmethod
     def dictionary():
+        """Make a dictionary that matches english ipa phonemes to naru characters.
+
+        Returns:
+            dict: dictionary mapping phonemes to naru characters
+        """
+
         # Match all ipa vowels with a naru character.
         vlen = min(len(Naru.ipa_vowels), len(Naru.naru_vowels))
         vzip = list(zip(Naru.ipa_vowels[:vlen], Naru.naru_vowels[:vlen]))
