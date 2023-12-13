@@ -11,12 +11,16 @@ from math import floor, sqrt
 
 
 class Naru:
+    """Class that stores the dictionary of naru and allows for translation into naru script."""
+
+    # Choose which script to use for naru.
     script = "script1"
     naru_vowels = load_images_from_folder(os.getcwd() + f"/naru/{script}/vowels")
     naru_consonants = load_images_from_folder(
         os.getcwd() + f"/naru/{script}/consonants"
     )
 
+    # List of the international phonetic alphabet for english in order of how commonly they are used in the english language.
     # fmt: off
     ipa_vowels = ['ə', 'ɪ', 'i', 'ɛ', 'æ', 'u', 'e', 'ɑ', 'ɔ', 'o', 'a', 'ʊ']
     ipa_consonants = ['n', 'r', 't', 's', 'd', 'l', 'k', 'ð', 'm', 'z', 'p', 'v', 'w', 'b', 'f', 'h', 'ŋ', 'ʃ', 'j', 'g', 'ʤ', 'ʧ', 'θ', 'ʒ', 'c']
@@ -24,21 +28,34 @@ class Naru:
 
     @staticmethod
     def translate(txt):
+        """Translates english text into naru script.
+
+        Args:
+            txt (str): String of enlish text to be written in naru script.
+
+        Returns:
+            numpy.ndarray: An image of the naru representation of the input text.
+        """
+
         d, lns = Naru.dictionary(), [[]]
         ln = lns[0]
         ln_len = 0
         words = txt.split()
+
+        # Set the syllable limit per line.
         if len(words) < 20:
             syl_lim = 10
         else:
             syl_lim = floor(sqrt(len(words) * 6))
+
+        # Go through each word, convert it into phonemes, get the corresponding naru character, append the character to the current line.
         for word in words:
             word = Naru._prep_word(word)
             phonemes = Naru._prep_phonemes(word)
             if not phonemes:
                 continue
 
-            # Start syllable and add an open for the word.
+            # Start syllable and add an opening (vertical line at the start of the first syllable) for the word.
             syl = np.ones((27, 27), dtype=np.uint8) * 255
             syl[:, 0:1] = 0
             ct = 0
@@ -46,7 +63,9 @@ class Naru:
                 ct += 1
                 mask = d[p] - 255
                 syl += mask
+                # When a vowel is reached, append it and then end the current syllable.
                 if p in Naru.ipa_vowels:
+                    # Checking if there is space for the current syllable. If not start new line.
                     if (syl_lim * 27) - ln_len < 27:
                         Naru._addendspace(lns[-1], syl_lim, ln_len)
                         lns.append([])
@@ -55,6 +74,8 @@ class Naru:
                     ln.append(syl)
                     ln_len += 27
                     syl = np.ones((27, 27), dtype=np.uint8) * 255
+
+            # If there is a leftover syllable, add it.
             if any(syl.flatten() == 0):
                 if (syl_lim * 27) - ln_len < 27:
                     Naru._addendspace(lns[-1], syl_lim, ln_len)
@@ -64,7 +85,7 @@ class Naru:
                 ln.append(syl)
                 ln_len += 27
 
-            # Add a close to the word.
+            # Add a closing (vertical line at the end of the last syllable) to the word.
             close = np.ones((27, 27), dtype=np.uint8) * 255
             close = np.ones(ln[-1].shape, dtype=np.uint8) * 255
             close[:, 26:] = 0
@@ -81,7 +102,10 @@ class Naru:
                 ln = lns[-1]
                 ln_len = 0
 
+        # Ensuring all lines have the same width by adding necessary white space at the end.
         Naru._addendspace(lns[-1], syl_lim, ln_len)
+
+        # Concatenating each word in a line. Then concatenating each line.
         for i in range(len(lns)):
             if len(lns[i]) == 0:
                 continue
@@ -92,6 +116,15 @@ class Naru:
 
     @staticmethod
     def _prep_word(word):
+        """_summary_
+
+        Args:
+            word (_type_): _description_
+
+        Returns:
+            _type_: _description_
+        """
+
         return "".join([c.lower() for c in word if c.isalpha()])
 
     @staticmethod
@@ -115,8 +148,11 @@ class Naru:
 
     @staticmethod
     def dictionary():
+        # Match all ipa vowels with a naru character.
         vlen = min(len(Naru.ipa_vowels), len(Naru.naru_vowels))
         vzip = list(zip(Naru.ipa_vowels[:vlen], Naru.naru_vowels[:vlen]))
+
+        # Match all ipa consonants with a naru character.
         clen = min(len(Naru.ipa_consonants), len(Naru.naru_consonants))
         czip = list(zip(Naru.ipa_consonants[:clen], Naru.naru_consonants[:clen]))
         return dict([entry for entry in vzip] + [entry for entry in czip])
