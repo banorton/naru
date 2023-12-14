@@ -1,2 +1,9 @@
 # naru
-An orthography for English.
+A phonetically consistent orthography for English.
+
+# Overview
+Every language consists of a finite amount of phonemes. A phoneme is the smallest phonetic unit in a language. Some languages are phonetically consistent meaning that every character has only one associated sound (e.g. Spanish and German). English is not phonetically consistent. There are words that are spelled differently, but pronounced the same. For example, "to", "too", and "two", or "there", "their", and "they're". This means that certain English characters can have different sounds associated with them depending on the context. However, it is possible to take all the possible sounds in English and associate them with a unique character, therefore making a phonetically consistent orthography for English.
+
+Naru allows you to turn English into a phonetically consistent language by using a different orthography. The characters I have used in this project are not special. As long as there is a one to one assignment of unique characters to the sounds in English, the resulting script will be phonetically consistent. However, I did design the the characters such that vowels and consonants can be written over top of one another to make a unique character for each syllable. This allows naru to function also as a syllabic orthography similiar to Japanese. Futhermore, I have tried to assign the most commonly used phonemes in english to the most simple characters in the script. This should make it easier to write naru, as the majority of the time, only the simplest characters will be needed.
+
+I used a simple image editing tool to design all the unique characters. Each character is a 27px by 27px, 8-bit image. Converting English to naru works by seperating input text into words, converting the words into phonemes, and then writing the phonemes using the naru script. 
